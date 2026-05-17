@@ -103,8 +103,7 @@ pip install -r requirements.txt
 # 3. Levantar el entorno con Docker
 
 ```bash
-docker-compose up -d
-```
+docker-compose -f docker/docker-compose.yml up -d
 
 Esto levanta automáticamente los siguientes servicios:
 - **Kafka** en `localhost:9092`
