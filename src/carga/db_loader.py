@@ -11,7 +11,7 @@ import redis
 import psycopg2
 from kafka import KafkaConsumer
 
-KAFKA_BROKER  = "localhost:9092"
+KAFKA_BROKER  = "localhost:29092"
 TOPIC_ENTRADA = "eventos-validados"
 
 REDIS_HOST = "localhost"
@@ -103,7 +103,8 @@ def main():
         bootstrap_servers=KAFKA_BROKER,
         value_deserializer=lambda v: json.loads(v.decode("utf-8")),
         auto_offset_reset="earliest",
-        group_id="carga-group"
+        group_id="carga-group",
+        api_version=(2, 5, 0)
     )
     cargados   = 0
     rechazados = 0

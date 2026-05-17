@@ -12,10 +12,10 @@ import random
 from datetime import datetime, timezone
 from kafka import KafkaProducer
 
-KAFKA_BROKER = "localhost:9092"
+KAFKA_BROKER = "localhost:29092"
 TOPIC_NAME   = "eventos-notificaciones"
-EVENTOS_POR_LOTE = 10
-INTERVALO_SEGUNDOS = 2
+EVENTOS_POR_LOTE = 5
+INTERVALO_SEGUNDOS = 3
 
 TIPOS_EVENTO = ["like", "comentario", "seguidor"]
 
@@ -37,7 +37,8 @@ def main():
     print(f"[INGESTA] Conectando a Kafka en {KAFKA_BROKER}...")
     producer = KafkaProducer(
         bootstrap_servers=KAFKA_BROKER,
-        value_serializer=lambda v: json.dumps(v).encode("utf-8")
+        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        api_version=(2, 5, 0)
     )
     print(f"[INGESTA] Productor conectado. Enviando eventos al tópico '{TOPIC_NAME}'...\n")
     try:

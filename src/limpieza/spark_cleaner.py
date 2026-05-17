@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timezone
 from kafka import KafkaConsumer, KafkaProducer
 
-KAFKA_BROKER        = "localhost:9092"
+KAFKA_BROKER        = "localhost:29092"
 TOPIC_ENTRADA       = "eventos-notificaciones"
 TOPIC_LIMPIO        = "eventos-limpios"
 TOPIC_ERRORES       = "eventos-errores"
@@ -62,11 +62,13 @@ def main():
         bootstrap_servers=KAFKA_BROKER,
         value_deserializer=lambda v: json.loads(v.decode("utf-8")),
         auto_offset_reset="earliest",
-        group_id="limpieza-group"
+        group_id="limpieza-group",
+        api_version=(2, 5, 0)
     )
     producer = KafkaProducer(
         bootstrap_servers=KAFKA_BROKER,
-        value_serializer=lambda v: json.dumps(v).encode("utf-8")
+        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        api_version=(2, 5, 0)
     )
     print("[LIMPIEZA] Escuchando eventos...\n")
     procesados = 0
