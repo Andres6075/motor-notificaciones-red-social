@@ -111,19 +111,31 @@ Esto levanta automáticamente los siguientes servicios:
 - **Redis** en `localhost:6379`
 - **PostgreSQL** en `localhost:5432`
 
-### 4. Ejecutar el pipeline completo
+### 4. Ejecutar el pipeline completo (En terminales separadas)
 
+Para evitar sobrecargar el sistema, se recomienda abrir una pestaña de terminal nueva en Visual Studio Code para cada paso del pipeline.
+
+**Paso 1: Ingesta de eventos en tiempo real (Kafka)**
+*Abra una nueva terminal y ejecute el productor. Déjelo correr unos segundos para simular el tráfico y luego deténgalo con `Ctrl + C`.*
 ```bash
-# Paso 1: Iniciar la ingesta de eventos
 python src/ingesta/kafka_producer.py
+```
 
-# Paso 2: Ejecutar limpieza y transformación
+**Paso 2: Limpieza y transformación de datos (Apache Spark)**
+*Ejecute el script de procesamiento para estructurar los eventos recibidos.*
+```bash
 python src/limpieza/spark_cleaner.py
+```
 
-# Paso 3: Validar los datos
+**Paso 3: Validación de calidad de datos (Great Expectations)**
+*Ejecute la suite de pruebas para asegurar que los datos procesados cumplen con las reglas de negocio.*
+```bash
 python src/validacion/great_expectations_suite.py
+```
 
-# Paso 4: Cargar a base de datos
+**Paso 4: Carga y Persistencia (Redis y PostgreSQL)**
+*Ejecute el cargador final para guardar las notificaciones en caché de alta velocidad y el histórico relacional.*
+```bash
 python src/carga/db_loader.py
 ```
 
