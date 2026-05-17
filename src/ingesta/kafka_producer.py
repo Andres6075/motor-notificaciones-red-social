@@ -14,8 +14,9 @@ from kafka import KafkaProducer
 
 KAFKA_BROKER = "localhost:29092"
 TOPIC_NAME   = "eventos-notificaciones"
-EVENTOS_POR_LOTE = 5
-INTERVALO_SEGUNDOS = 3
+EVENTOS_POR_LOTE = 3
+INTERVALO_SEGUNDOS = 5
+TOTAL_LOTES = 5
 
 TIPOS_EVENTO = ["like", "comentario", "seguidor"]
 
@@ -42,8 +43,7 @@ def main():
     )
     print(f"[INGESTA] Productor conectado. Enviando eventos al tópico '{TOPIC_NAME}'...\n")
     try:
-        lote = 1
-        while True:
+        for lote in range(1, TOTAL_LOTES + 1):
             print(f"[INGESTA] ── Lote #{lote} ──────────────────────────────")
             for _ in range(EVENTOS_POR_LOTE):
                 evento = generar_evento()
@@ -53,13 +53,13 @@ def main():
                       f"{evento['timestamp']}")
             producer.flush()
             print(f"[INGESTA] Lote #{lote} enviado correctamente.\n")
-            lote += 1
-            time.sleep(INTERVALO_SEGUNDOS)
+            if lote < TOTAL_LOTES:
+                time.sleep(INTERVALO_SEGUNDOS)
     except KeyboardInterrupt:
         print("\n[INGESTA] Producción detenida por el usuario.")
     finally:
         producer.close()
-        print("[INGESTA] Conexión cerrada.")
+        print(f"\n[INGESTA] Pipeline completado. Total: {TOTAL_LOTES} lotes, {TOTAL_LOTES * EVENTOS_POR_LOTE} eventos enviados.")
 
 if __name__ == "__main__":
     main()
