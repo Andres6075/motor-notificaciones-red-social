@@ -1,0 +1,8 @@
+.astro/
+dags/
+tests/
+plugins/
+include/
+*.pyc
+__pycache__/
+.env
