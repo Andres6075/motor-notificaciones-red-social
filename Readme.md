@@ -100,17 +100,18 @@ cd motor-notificaciones-red-social
 pip install -r requirements.txt
 ```
 
-# 3. Levantar el entorno con Docker
+### 3. Levantar el entorno con Docker
 
 ```bash
 docker-compose -f docker/docker-compose.yml up -d
+```
 
 Esto levanta automáticamente los siguientes servicios:
 - **Kafka** en `localhost:9092`
 - **Redis** en `localhost:6379`
 - **PostgreSQL** en `localhost:5432`
 
-# 4. Ejecutar el pipeline completo
+### 4. Ejecutar el pipeline completo
 
 ```bash
 # Paso 1: Iniciar la ingesta de eventos
@@ -125,8 +126,6 @@ python src/validacion/great_expectations_suite.py
 # Paso 4: Cargar a base de datos
 python src/carga/db_loader.py
 ```
-
----
 
 # Etapas del Pipeline
 
