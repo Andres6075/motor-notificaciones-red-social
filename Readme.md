@@ -113,21 +113,25 @@ Servicios levantados:
 - **Redis** en `localhost:6379`
 - **PostgreSQL** en `localhost:5432`
 
-### 4. Ejecutar el pipeline completo
+### 4. Ejecutar el pipeline 
 
 ```bash
 # Etapa 1: Ingesta de eventos
 python src/ingesta/kafka_producer.py
-
+```
+```bash
 # Etapa 2: Limpieza y transformación
 python src/limpieza/spark_cleaner.py
-
+```
+```bash
 # Etapa 3: Validación de datos
 python src/validacion/great_expectations_suite.py
-
+```
+```bash
 # Etapa 4: Clasificación spam/bot con Modelo IA (NUEVO)
 python src/modelo/modelo_spam.py
-
+```
+```bash
 # Etapa 5: Carga a Redis y PostgreSQL
 python src/carga/db_loader.py
 ```
