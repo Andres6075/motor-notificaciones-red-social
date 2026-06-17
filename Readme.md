@@ -115,24 +115,34 @@ Servicios levantados:
 
 ### 4. Ejecutar el pipeline 
 
-```bash
+
 # Etapa 1: Ingesta de eventos
+
+```bash
 python src/ingesta/kafka_producer.py
 ```
-```bash
+
 # Etapa 2: Limpieza y transformación
+
+```bash
 python src/limpieza/spark_cleaner.py
 ```
-```bash
+
 # Etapa 3: Validación de datos
+
+```bash
 python src/validacion/great_expectations_suite.py
 ```
-```bash
+
 # Etapa 4: Clasificación spam/bot con Modelo IA (NUEVO)
+
+```bash
 python src/modelo/modelo_spam.py
 ```
-```bash
+
 # Etapa 5: Carga a Redis y PostgreSQL
+
+```bash
 python src/carga/db_loader.py
 ```
 
