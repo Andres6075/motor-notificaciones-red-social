@@ -61,37 +61,49 @@ def main():
         conn = conectar_postgres()
         crear_tabla(conn)
         
-        # Lote controlado de datos limpios para la demostración en vivo
-        eventos_presentacion = [
-            {"evento_id": "ev-001", "tipo_evento": "like", "usuario_origen": "user_028", "usuario_destino": "user_041"},
-            {"evento_id": "ev-002", "tipo_evento": "comentario", "usuario_origen": "user_002", "usuario_destino": "user_088"},
-            {"evento_id": "ev-003", "tipo_evento": "seguidor", "usuario_origen": "user_017", "usuario_destino": "user_078"},
-            {"evento_id": "ev-004", "tipo_evento": "like", "usuario_origen": "user_054", "usuario_destino": "user_068"},
-            {"evento_id": "ev-005", "tipo_evento": "comentario", "usuario_origen": "user_091", "usuario_destino": "user_004"}
-        ]
-        
-        print(f"\n[CARGA] Procesando lote de presentación ({len(eventos_presentacion)} eventos validados)...")
-        time.sleep(1) # Pequeña pausa para darle realismo y fluidez al video
-        
+        # MEJORA PARCIAL 3: ahora lee desde 'eventos-clasificados'
+        # Solo llegan eventos que el modelo IA aprobó como legítimos
+        from kafka import KafkaConsumer
+        consumer = KafkaConsumer(
+            "eventos-clasificados",
+            bootstrap_servers="localhost:29092",
+            value_deserializer=lambda v: json.loads(v.decode("utf-8")),
+            auto_offset_reset="earliest",
+            group_id="carga-group",
+            api_version=(2, 5, 0),
+            consumer_timeout_ms=8000
+        )
+
+        print("\n[CARGA] Escuchando tópico 'eventos-clasificados' (eventos aprobados por Modelo IA)...")
         cur = conn.cursor()
-        for idx, evento in enumerate(eventos_presentacion, 1):
+        idx = 0
+        for mensaje in consumer:
+            evento = mensaje.value
+            idx += 1
+            clasificacion = evento.get("clasificacion_ia", {})
+            prob_spam = clasificacion.get("probabilidad", 0.0)
+
             # 1. Almacenamiento rápido en Caché (Redis)
             clave_redis = f"notif:{evento['usuario_destino']}:{evento['evento_id']}"
             r.setex(clave_redis, REDIS_TTL, json.dumps(evento))
-            
+
             # 2. Persistencia relacional histórica (PostgreSQL)
             cur.execute("""
                 INSERT INTO eventos_procesados (evento_id, tipo_evento, usuario_origen, usuario_destino)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (evento_id) DO NOTHING;
-            """, (evento['evento_id'], evento['tipo_evento'], evento['usuario_origen'], evento['usuario_destino']))
-            
-            print(f"  ✔ Cargado [{idx}]: {evento['tipo_evento']} | {evento['usuario_origen']} → {evento['usuario_destino']} ➔ Guardado en Redis & Postgres")
-            time.sleep(0.4) # Intervalo dinámico para que se vea el procesamiento uno a uno
-            
+            """, (evento['evento_id'], evento['tipo_evento'],
+                  evento['usuario_origen'], evento['usuario_destino']))
+
+            print(f"  ✔ Cargado [{idx}]: {evento['tipo_evento']} | "
+                  f"{evento['usuario_origen']} → {evento['usuario_destino']} | "
+                  f"P(spam)={prob_spam:.3f} ➔ Redis & Postgres")
+            time.sleep(0.3)
+
         cur.close()
+        consumer.close()
         conn.close()
-        print("\n[CARGA] Pipeline completado con éxito. Datos almacenados de forma permanente.")
+        print(f"\n[CARGA] Pipeline completado. {idx} eventos almacenados (spam bloqueado por Modelo IA).")
         
     except Exception as e:
         print(f"\n[ERROR EN CARGA] No se pudo completar la persistencia: {e}")
