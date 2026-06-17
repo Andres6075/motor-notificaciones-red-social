@@ -1,83 +1,85 @@
-# Motor de Notificaciones en Tiempo Real – Red Social
+#  Motor de Notificaciones en Tiempo Real – Red Social
 
-> **ITY1101 – Gestión de Datos para IA** | Evaluación Parcial N°2 | Caso de Estudio 2
+> **ITY1101 – Gestión de Datos para IA** | Evaluación Parcial N°3 | Caso de Estudio 2
 
 ---
 
-# Equipo
+## Equipo
 
 | Nombre | Rol | Responsabilidades |
 |--------|-----|-------------------|
-| **Leandro Marín** | Project Manager / Jefe de Grupo | Planificación del proyecto, coordinación de entregas, informe técnico, plan de seguridad y monitoreo |
-| **Andrés Zúñiga** | Data Engineer | Implementación del pipeline completo: ingesta, limpieza, validación, carga y configuración del entorno Docker |
+| **Leandro Marín** | Project Manager / Jefe de Grupo | Planificación del proyecto, coordinación de entregas, informe técnico, plan de seguridad, modelo IA y monitoreo |
+| **Andrés Zúñiga** | Data Engineer | Implementación del pipeline completo: ingesta, limpieza, validación, modelo IA, carga y configuración del entorno Docker |
 
 ---
 
-# Descripción del Proyecto
+## Descripción del Proyecto
 
-Este proyecto consiste en el diseño e implementación de un **pipeline DataOps** para el procesamiento de eventos en tiempo real en una red social. Cuando un usuario realiza una acción (like, comentario o nuevo seguidor), el sistema captura ese evento, lo limpia, lo valida y lo almacena para que la notificación llegue al usuario destinatario en menos de 500 ms.
+Este proyecto consiste en el diseño e implementación de un **pipeline DataOps** para el procesamiento de eventos en tiempo real en una red social. Cuando un usuario realiza una acción (like, comentario o nuevo seguidor), el sistema captura ese evento, lo limpia, lo valida, lo clasifica con un modelo de IA y lo almacena para que la notificación llegue al usuario destinatario en menos de 500 ms.
 
 El proyecto aplica una **metodología adaptativa (Scrum)** con sprints de 2 semanas, lo que permite iterar rápidamente sobre las funcionalidades del sistema según el feedback del equipo de producto.
 
 ---
 
-# Arquitectura del Pipeline
+## Arquitectura del Pipeline
 
 ```
 [Eventos de usuarios]
         ↓
-  [Apache Kafka]         ← Ingesta en tiempo real
+  [Apache Kafka]              ← Etapa 1: Ingesta en tiempo real
         ↓
-  [Apache Spark]         ← Limpieza y transformación
+  [Apache Spark]              ← Etapa 2: Limpieza y transformación
         ↓
-[Great Expectations]     ← Validación estructural y semántica
+[Great Expectations]          ← Etapa 3: Validación estructural y semántica
         ↓
-  [Redis / PostgreSQL]   ← Carga y persistencia
+  [Modelo IA – Random Forest] ← Etapa 4: Clasificación spam/bot (NUEVO Parcial 3)
+        ↓                            ↓
+[Redis / PostgreSQL]          [Cola eventos-spam] ← Bloqueados
         ↓
-[Grafana / Prometheus]   ← Monitoreo y KPIs
+[Grafana / Prometheus]        ← Monitoreo y KPIs
+        ↓
+   [Metabase BI]              ← Dashboard interactivo (NUEVO Parcial 3)
 ```
 
 ---
 
-# Estructura del Repositorio
+## Estructura del Repositorio
 
 ```
 motor-notificaciones-red-social/
 │
 ├── src/
 │   ├── ingesta/
-│   │   └── kafka_producer.py       # Script productor de eventos hacia Kafka
+│   │   └── kafka_producer.py            # Etapa 1: Productor de eventos hacia Kafka
 │   ├── limpieza/
-│   │   └── spark_cleaner.py        # Limpieza y transformación con Spark
+│   │   └── spark_cleaner.py             # Etapa 2: Limpieza y transformación con Spark
 │   ├── validacion/
-│   │   └── great_expectations_suite.py  # Reglas de validación estructural y semántica
+│   │   └── great_expectations_suite.py  # Etapa 3: Validación estructural y semántica
+│   ├── modelo/
+│   │   └── modelo_spam.py               # Etapa 4: Clasificación spam/bot con Random Forest (NUEVO)
 │   └── carga/
-│       └── db_loader.py            # Carga a Redis y PostgreSQL con manejo de errores
+│       └── db_loader.py                 # Etapa 5: Carga a Redis y PostgreSQL
 │
 ├── docker/
-│   ├── Dockerfile                  # Imagen del pipeline
-│   └── docker-compose.yml          # Orquestación de servicios (Kafka, Spark, Redis, PostgreSQL)
+│   ├── Dockerfile                       # Imagen del pipeline
+│   └── docker-compose.yml               # Orquestación de servicios
 │
 ├── logs/
-│   └── pipeline_execution.log      # Log de ejemplo de ejecución del pipeline
+│   └── pipeline_execution.log           # Log de ejecución del pipeline
 │
 ├── data/
-│   ├── raw/                        # Datos crudos de entrada
-│   ├── processed/                  # Datos limpios y transformados
-│   └── validated/                  # Datos validados listos para carga
+│   ├── raw/
+│   │   └── eventos_red_social.json      # Datos reales capturados por el pipeline
+│   ├── processed/                       # Datos limpios y transformados
+│   └── validated/                       # Datos validados listos para clasificación
 │
-├── docs/
-│   └── diagrama_pipeline.png       # Diagrama visual del flujo de datos
-│
-├── requirements.txt                # Dependencias Python del proyecto
-└── README.md                       # Este archivo
+├── requirements.txt                     # Dependencias Python del proyecto
+└── README.md                            # Este archivo
 ```
 
 ---
 
-# Requisitos Previos
-
-Antes de ejecutar el proyecto, asegúrate de tener instalado:
+## Requisitos Previos
 
 - **Docker Desktop** (versión 24.0 o superior)
 - **Python 3.10+**
@@ -85,16 +87,16 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
 ---
 
-# Instalación y Ejecución
+## Instalación y Ejecución
 
-# 1. Clonar el repositorio
+### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/[usuario-equipo]/motor-notificaciones-red-social.git
+git clone https://github.com/Andres6075/motor-notificaciones-red-social.git
 cd motor-notificaciones-red-social
 ```
 
-# 2. Instalar dependencias Python
+### 2. Instalar dependencias Python
 
 ```bash
 pip install -r requirements.txt
@@ -106,46 +108,39 @@ pip install -r requirements.txt
 docker-compose -f docker/docker-compose.yml up -d
 ```
 
-Esto levanta automáticamente los siguientes servicios:
-- **Kafka** en `localhost:9092`
+Servicios levantados:
+- **Kafka** en `localhost:29092`
 - **Redis** en `localhost:6379`
 - **PostgreSQL** en `localhost:5432`
 
-### 4. Ejecutar el pipeline completo (En terminales separadas)
+### 4. Ejecutar el pipeline completo
 
-Para evitar sobrecargar el sistema, se recomienda abrir una pestaña de terminal nueva en Visual Studio Code para cada paso del pipeline.
-
-**Paso 1: Ingesta de eventos en tiempo real (Kafka)**
-*Abra una nueva terminal y ejecute el productor. Déjelo correr unos segundos para simular el tráfico y luego deténgalo con `Ctrl + C`.*
 ```bash
+# Etapa 1: Ingesta de eventos
 python src/ingesta/kafka_producer.py
-```
 
-**Paso 2: Limpieza y transformación de datos (Apache Spark)**
-*Ejecute el script de procesamiento para estructurar los eventos recibidos.*
-```bash
+# Etapa 2: Limpieza y transformación
 python src/limpieza/spark_cleaner.py
-```
 
-**Paso 3: Validación de calidad de datos (Great Expectations)**
-*Ejecute la suite de pruebas para asegurar que los datos procesados cumplen con las reglas de negocio.*
-```bash
+# Etapa 3: Validación de datos
 python src/validacion/great_expectations_suite.py
-```
 
-**Paso 4: Carga y Persistencia (Redis y PostgreSQL)**
-*Ejecute el cargador final para guardar las notificaciones en caché de alta velocidad y el histórico relacional.*
-```bash
+# Etapa 4: Clasificación spam/bot con Modelo IA (NUEVO)
+python src/modelo/modelo_spam.py
+
+# Etapa 5: Carga a Redis y PostgreSQL
 python src/carga/db_loader.py
 ```
 
-# Etapas del Pipeline
+---
 
-# 1. Ingesta (`src/ingesta/`)
-Captura eventos en tiempo real desde la plataforma usando **Apache Kafka**. Cada evento tiene el siguiente formato JSON:
+## Etapas del Pipeline
 
+### 1. Ingesta (`src/ingesta/`)
+Captura eventos en tiempo real usando **Apache Kafka**. Formato JSON:
 ```json
 {
+  "evento_id": "evt-001",
   "tipo_evento": "like",
   "usuario_origen": "user_001",
   "usuario_destino": "user_042",
@@ -154,30 +149,43 @@ Captura eventos en tiempo real desde la plataforma usando **Apache Kafka**. Cada
 }
 ```
 
-### 2. Limpieza y Transformación (`src/limpieza/`)
-Usando **Apache Spark Streaming** se aplican las siguientes transformaciones:
-- Eliminación de eventos duplicados por ID único
-- Descarte de registros con campos obligatorios nulos
-- Normalización de timestamps al formato ISO 8601
+### 2. Limpieza (`src/limpieza/`)
+Con **Apache Spark Streaming**:
+- Eliminación de duplicados por ID único
+- Descarte de campos obligatorios nulos
+- Normalización de timestamps a ISO 8601
 - Estandarización del campo `tipo_evento`
 
 ### 3. Validación (`src/validacion/`)
-Con **Great Expectations** se aplican validaciones:
-- **Estructurales**: tipos de dato, campos obligatorios, unicidad de claves
-- **Semánticas**: fechas no futuras, tipos de evento válidos, IDs de usuario existentes
+Con **Great Expectations**:
+- Validaciones estructurales: tipos de dato, campos obligatorios
+- Validaciones semánticas: fechas no futuras, IDs existentes, no auto-interacción
 
-Los eventos que no pasan la validación se envían a una cola de errores sin detener el pipeline.
+### 4. Modelo IA (`src/modelo/`) ← NUEVO Parcial 3
+Clasificador **Random Forest** que detecta eventos spam/bot:
+- Se entrena con datos históricos del pipeline (1.000 registros)
+- Clasifica cada evento en tiempo real antes de la carga
+- Eventos legítimos → tópico `eventos-clasificados` → carga
+- Eventos spam/bot → tópico `eventos-spam` → bloqueados
 
-### 4. Carga (`src/carga/`)
-Los datos validados se cargan en dos destinos:
-- **Redis**: almacena notificaciones pendientes de envío (baja latencia)
-- **PostgreSQL**: persiste el historial completo de eventos procesados
+**Métricas del modelo:**
+| Métrica | Valor |
+|---------|-------|
+| Accuracy | 95.5% |
+| Precision | 94.2% |
+| Recall | 92.9% |
+| F1-Score | 93.5% |
+| ROC-AUC | 0.990 |
+| Gini | 0.980 |
 
-El script implementa reintentos automáticos (hasta 3 intentos) y registro de registros rechazados.
+### 5. Carga (`src/carga/`)
+Los eventos aprobados por el modelo se cargan en:
+- **Redis**: notificaciones pendientes (baja latencia)
+- **PostgreSQL**: historial completo de eventos procesados
 
 ---
 
-## 📊 KPIs de Monitoreo
+## KPIs de Monitoreo
 
 | KPI | Umbral Crítico | Herramienta |
 |-----|----------------|-------------|
@@ -186,10 +194,11 @@ El script implementa reintentos automáticos (hasta 3 intentos) y registro de re
 | Tasa de errores de validación | > 0.5% | Great Expectations |
 | Throughput del pipeline | < 1.000 ev/seg | Grafana |
 | Errores de carga a BD | > 0.1% | Logs PostgreSQL |
+| Tasa de spam detectado | > 10% | Modelo IA + Metabase |
 
 ---
 
-## 🔒 Seguridad
+## Seguridad
 
 - **Cifrado en tránsito**: TLS 1.3 entre todos los servicios
 - **Cifrado en reposo**: AES-256 para datos en Redis y PostgreSQL
@@ -199,25 +208,16 @@ El script implementa reintentos automáticos (hasta 3 intentos) y registro de re
 
 ---
 
-## 📅 Planificación
-
-| Entregable | Fecha |
-|------------|-------|
-| Avance 1 | Jueves 7 de mayo 2025 |
-| Avance 2 | Jueves 14 de mayo 2025 |
-| Entrega Final + Presentación | Martes 19 de mayo 2025 |
-
----
-
-## 📚 Bibliografía
+## Bibliografía
 
 - Apache Kafka Documentation: https://kafka.apache.org/documentation/
 - Apache Spark Documentation: https://spark.apache.org/docs/latest/
 - Great Expectations Documentation: https://docs.greatexpectations.io/
+- scikit-learn Documentation: https://scikit-learn.org/stable/
 - Redis Documentation: https://redis.io/docs/
 - PostgreSQL Documentation: https://www.postgresql.org/docs/
 - Ley 19.628 – Protección de la Vida Privada (Chile)
 
 ---
 
-*ITY1101 – Gestión de Datos para IA | Sección 301D | 2025*
+*ITY1101 – Gestión de Datos para IA | Sección 301D | 2026*
