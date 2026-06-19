@@ -26,4 +26,4 @@ COPY src/ ./src/
 
 # CAPA 6: Comando por defecto al iniciar el contenedor
 # Inicia el productor de eventos Kafka (etapa de ingesta)
-CMD ["python", "src/ingesta/kafka_producer.py"]
+CMD ["python", "-m", "src.metrics_exporter"]
