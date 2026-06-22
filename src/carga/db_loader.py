@@ -44,11 +44,13 @@ def crear_tabla(conn):
         # Estructura limpia: Postgres maneja el timestamp de manera automática con DEFAULT NOW()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS eventos_procesados (
-                evento_id        VARCHAR(50) PRIMARY KEY,
-                tipo_evento      VARCHAR(20) NOT NULL,
-                usuario_origen   VARCHAR(20) NOT NULL,
-                usuario_destino  VARCHAR(20) NOT NULL,
-                timestamp_evento TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                evento_id         VARCHAR(50) PRIMARY KEY,
+                tipo_evento       VARCHAR(20) NOT NULL,
+                usuario_origen    VARCHAR(20) NOT NULL,
+                usuario_destino   VARCHAR(20) NOT NULL,
+                probabilidad_spam NUMERIC(5,4) DEFAULT 0,
+                es_spam           BOOLEAN DEFAULT FALSE,
+                timestamp_evento  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
             );
         """)
     print("[CARGA] Tabla 'eventos_procesados' verificada en la base de datos.")
@@ -82,6 +84,7 @@ def main():
             idx += 1
             clasificacion = evento.get("clasificacion_ia", {})
             prob_spam = clasificacion.get("probabilidad", 0.0)
+            es_spam = prob_spam >= 0.5
 
             # 1. Almacenamiento rápido en Caché (Redis)
             clave_redis = f"notif:{evento['usuario_destino']}:{evento['evento_id']}"
@@ -89,11 +92,12 @@ def main():
 
             # 2. Persistencia relacional histórica (PostgreSQL)
             cur.execute("""
-                INSERT INTO eventos_procesados (evento_id, tipo_evento, usuario_origen, usuario_destino)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO eventos_procesados (evento_id, tipo_evento, usuario_origen, usuario_destino, probabilidad_spam, es_spam)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (evento_id) DO NOTHING;
             """, (evento['evento_id'], evento['tipo_evento'],
-                  evento['usuario_origen'], evento['usuario_destino']))
+                  evento['usuario_origen'], evento['usuario_destino'],
+                  prob_spam, es_spam))
 
             print(f"  ✔ Cargado [{idx}]: {evento['tipo_evento']} | "
                   f"{evento['usuario_origen']} → {evento['usuario_destino']} | "
