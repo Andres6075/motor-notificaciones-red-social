@@ -207,7 +207,7 @@ Los eventos aprobados por el modelo se cargan en:
 | Tasa de errores de validación | > 0.5% | Great Expectations |
 | Throughput del pipeline | < 1.000 ev/seg | Grafana |
 | Errores de carga a BD | > 0.1% | Logs PostgreSQL |
-| Tasa de spam detectado | > 10% | Modelo IA + Metabase |
+| Tasa de spam detectado | > 10% | Modelo IA + Power Bi |
 
 ---
 
