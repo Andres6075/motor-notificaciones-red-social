@@ -32,13 +32,12 @@ El proyecto aplica una **metodología adaptativa (Scrum)** con sprints de 2 sema
         ↓
 [Great Expectations]          ← Etapa 3: Validación estructural y semántica
         ↓
-  [Modelo IA – Random Forest] ← Etapa 4: Clasificación spam/bot (NUEVO Parcial 3)
+[Modelo IA – Random Forest] ← Etapa 4: Clasificación spam/bot (NUEVO Parcial 3)
         ↓                            ↓
 [Redis / PostgreSQL]          [Cola eventos-spam] ← Bloqueados
         ↓
 [Grafana / Prometheus]        ← Monitoreo y KPIs
-        ↓
-   [Metabase BI]              ← Dashboard interactivo (NUEVO Parcial 3)
+        
 ```
 
 ---
